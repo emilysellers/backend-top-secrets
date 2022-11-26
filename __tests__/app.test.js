@@ -2,7 +2,7 @@ const pool = require('../lib/utils/pool');
 const setup = require('../data/setup');
 const request = require('supertest');
 const app = require('../lib/app');
-// const UserService = require('../lib/services/UserService');
+const UserService = require('../lib/services/UserService');
 
 describe('users routes', () => {
   beforeEach(() => {
@@ -35,6 +35,16 @@ describe('users routes', () => {
       .post('/api/v1/users/sessions')
       .send({ email: 'test@test.com', password: '123456' });
     expect(res.status).toEqual(200);
+  });
+
+  it('DELETE /api/v1/sessions signs out an existing user', async () => {
+    const agent = request.agent(app);
+    const user = await UserService.create({ ...mockUser });
+    await agent
+      .post('/api/v1/users/sessions')
+      .send({ email: 'test@test.com', password: '123456' });
+    const resp = await agent.delete('/api/v1/users/sessions');
+    expect(resp.status).toBe(204);
   });
 
   afterAll(() => {
