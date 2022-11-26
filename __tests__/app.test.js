@@ -45,6 +45,7 @@ describe('users routes', () => {
       .send({ email: 'test@test.com', password: '123456' });
     const resp = await agent.delete('/api/v1/users/sessions');
     expect(resp.status).toBe(204);
+    console.log(user);
   });
 
   afterAll(() => {
