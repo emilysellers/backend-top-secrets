@@ -16,6 +16,11 @@ describe('users routes', () => {
     password: '123456',
   };
 
+  const mockSecret = {
+    title: 'Test title',
+    description: 'Test description',
+  };
+
   it('POST /api/v1/users creates a new user', async () => {
     const res = await request(app).post('/api/v1/users').send(mockUser);
     expect(res.status).toBe(200);
@@ -29,7 +34,7 @@ describe('users routes', () => {
     });
   });
 
-  it('POST /api/v1/sessions signs in an existing user', async () => {
+  it('POST /api/v1/users/sessions signs in an existing user', async () => {
     await request(app).post('/api/v1/users').send(mockUser);
     const res = await request(app)
       .post('/api/v1/users/sessions')
@@ -37,15 +42,27 @@ describe('users routes', () => {
     expect(res.status).toEqual(200);
   });
 
-  it('DELETE /api/v1/sessions signs out an existing user', async () => {
+  it('DELETE /api/v1/users/sessions signs out an existing user', async () => {
     const agent = request.agent(app);
-    const user = await UserService.create({ ...mockUser });
+    await UserService.create({ ...mockUser });
     await agent
       .post('/api/v1/users/sessions')
       .send({ email: 'test@test.com', password: '123456' });
     const resp = await agent.delete('/api/v1/users/sessions');
     expect(resp.status).toBe(204);
-    console.log(user);
+  });
+
+  it('GET /api/v1/secrets should allow authenticated users to view all secrets', async () => {
+    const agent = request.agent(app);
+    await UserService.create({ ...mockUser });
+    await agent
+      .post('/api/v1/users/sessions')
+      .send({ email: 'test@test.com', password: '123456' });
+
+    await agent.post('/api/v1/secrets').send(mockSecret);
+
+    const res = await agent.get('/api/v1/secrets');
+    expect(res.status).toEqual(200);
   });
 
   afterAll(() => {
